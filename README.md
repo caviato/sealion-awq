@@ -67,7 +67,7 @@ n_samples = 16
 print("Generating samples from data...")
 for path in paths:
     print(f"Loading data from {path}")
-    data = load_dataset("json", data_files=path, cache_dir="path/to/cache/dir", split="train")
+    data = load_dataset("json", data_files=path, split="train")
     print("Data loaded")
 
     text = data["text"]
