@@ -1,4 +1,4 @@
-# SEA-LION GPTQ quantization method
+# SEA-LION AWQ quantization method
 ## 1.Purpose
 
 This repository provides a guide and a collection of scripts to help with the quantization and inference of the [SEA-LION 7B Instruct Model](https://huggingface.co/aisingapore/sea-lion-7b-instruct) instruct model developed by AI Singapore. The goal is to further democratise access to SEA-LION by allowing it to run on consumer grade hardware (e.g. common GPU like Nvidia GTX and RTX series) thanks to quantization.
