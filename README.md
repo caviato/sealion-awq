@@ -1,4 +1,4 @@
-#SEA-LION GPTQ quantization method
+# SEA-LION GPTQ quantization method
 ## 1.Purpose
 
 This repository provides a guide and a collection of scripts to help with the quantization and inference of the [SEA-LION 7B Instruct Model](https://huggingface.co/aisingapore/sea-lion-7b-instruct) instruct model developed by AI Singapore. The goal is to further democratise access to SEA-LION by allowing it to run on consumer grade hardware (e.g. common GPU like Nvidia GTX and RTX series) thanks to quantization.
@@ -22,6 +22,12 @@ quant_mode_path = "path/to/quant"
 ```
 Setting up the quantization config, loading the model via AutoAWQ and loading the tokenizer.
 ```python
+# quantize.py
+
+from awq import AutoAWQForCausalLM
+from transformers import AutoTokenizer
+
+#...
 # Quantization config
 quant_config = {
     "zero_point": True,
@@ -42,6 +48,11 @@ tokenizer = AutoTokenizer.from_pretrained(
 ```
 The AWQ algorithm requires some input data. Due to the multilingual nature of SEA-LION, we used data from each language available in SEA-LION.
 ```python
+# quantize.py
+
+from datasets import load_dataset
+
+# ...
 # Load dataset
 lang_list = [ "en", "km", "ms", "ta", "tl", "zh", "id", "lo", "my", "th", "vi" ]
 paths = []
@@ -84,9 +95,13 @@ for path in paths:
 
         entries += 1
 print("Calibration dataset prepared")
+#...
 ```
 Finally, we can quantize and save our model.
 ```python
+# quantize.py
+
+#...
 # Quantize
 model.to("cuda:0")
 model.quantize(tokenizer, quant_config=quant_config, calib_data=dataset)
@@ -95,6 +110,64 @@ model.quantize(tokenizer, quant_config=quant_config, calib_data=dataset)
 model.save_quantized(quant_mode_path, safetensors=True)
 tokenizer.save_pretrained(quant_mode_path)
 ```
+# Inference
+We will be using [VLLM](https://github.com/vllm-project/vllm/tree/v0.2.6) to run inference. Please setup VLLM in your Python environment using the following [instructions](https://github.com/aisingapore/sealion/tree/vllm/vllm).
+
+Set the path to the quantized model directory. 
+```python
+quant_mode_path = "path/to/quant"
+```
+Import vllm and initialise the model. 
+```python
+import math
+from vllm.entrypoints.llm import LLM
+from vllm.sampling_params import SamplingParams
+
+#...
+# Create an LLM.
+llm = LLM(
+        model=quant_mode_path,
+        trust_remote_code=True,
+        quantization="AWQ",
+        )
+#...
+```
+Create a sampling params object.
+```python
+#...
+d_model = 4096
+
+def scale_logits(token_ids, logits):
+    logits = logits * (1 / math.sqrt(d_model))
+    return logits
+
+# 
+sampling_params = SamplingParams(
+    temperature=0,
+    repetition_penalty=1.2,
+    logits_processors=[scale_logits],
+    max_tokens=64,
+)
+#...
+```
+Finally, run the inference with the prompt.
+```python
+# ...
+# Sample prompts.
+prompts = [
+    "Hello, my name is John and I am a",
+    "Singapore is",
+]
+
+# Generate text
+outputs = llm.generate(prompts, sampling_params)
+
+# Print the outputs.
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
+```
 # Benchmark
 
 | Model                                        | ARC   | HellaSwag | MMLU  | TruthfulQA | Average |
@@ -102,7 +175,7 @@ tokenizer.save_pretrained(quant_mode_path)
 | SEA-LION 7B Instruct (FP16)                  | 40.78 | 68.20     | 27.12 | 36.29      | 43.10   |
 | SEA-LION 7B Instruct (4-Bit, 128 group size) |  |      |  |       |    |
 
-Although the evaluations were run with the same n-shot values as Hugging Face's LLM Leaderboard, the evaluations were run using version 0.4.1 of the [Language Model Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness/tree/v0.4.1) by EleutherAI. AWQ support in the [VLLM](https://github.com/vllm-project/vllm/tree/v0.2.6) inference engine was used to perform the evaluations in the harness. If you wish to run the evaluations yourself, please setup VLLM using the following [instructions](https://github.com/aisingapore/sealion/tree/vllm/vllm).
+Although the evaluations were run with the same n-shot values as Hugging Face's LLM Leaderboard, the evaluations were run using version 0.4.1 of the [Language Model Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness/tree/v0.4.1) by EleutherAI. AWQ support in the [VLLM](https://github.com/vllm-project/vllm/tree/v0.2.6) inference engine was used to perform the evaluations in the harness. If you wish to run the evaluations yourself, please setup VLLM using the instructions found in the [inference section](#inference).
 
 | Tasks                       | n-shots |
 | --------------------------- | ------- |
