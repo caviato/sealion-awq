@@ -20,7 +20,7 @@ base_model_path = "path/to/base"
 quant_mode_path = "path/to/quant"
 #...
 ```
-
+Setting up the quantization config, loading the model via AutoAWQ and loading the tokenizer.
 ```python
 # Quantization config
 quant_config = {
@@ -85,6 +85,7 @@ for path in paths:
         entries += 1
 print("Calibration dataset prepared")
 ```
+Finally, we can quantize and save our model.
 ```python
 # Quantize
 model.to("cuda:0")
