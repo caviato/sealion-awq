@@ -166,11 +166,12 @@ for output in outputs:
 ```
 # Benchmark
 
-| Model                                        | ARC   | HellaSwag | MMLU  | TruthfulQA | Average |
-| -------------------------------------------- | ----- | --------- | ----- | ---------- | ------- |
-| SEA-LION 7B Instruct (FP16)                  | 40.78 | 68.20 | 27.12 | 36.29 | 43.10   |
-| SEA-LION 7B Instruct (4-Bit, 128 group size) | 37.97 | 63.68 | 28.00 |       |    |
+| Model                                        | ARC   | HellaSwag | MMLU  | Average |
+| -------------------------------------------- | ----- | --------- | ----- | ------- |
+| SEA-LION 7B Instruct (FP16)                  | 40.78 | 68.20     | 27.12 | 45.37   |
+| SEA-LION 7B Instruct (4-Bit, 128 group size) | 37.97 | 63.68     | 28.00 | 43.22   |
 
+TruthfulQA is excluded from the benchmarks due to a technical issue with the quantized model and the evaluation harness. 
 Although the evaluations were run with the same n-shot values as Hugging Face's LLM Leaderboard, the evaluations were run using version 0.4.1 of the [Language Model Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness/tree/v0.4.1) by EleutherAI. AWQ support in the [VLLM](https://github.com/vllm-project/vllm/tree/v0.2.6) inference engine was used to perform the evaluations in the harness. If you wish to run the evaluations yourself, please setup VLLM using the instructions found in the [inference section](#inference).
 
 | Tasks                       | n-shots |
