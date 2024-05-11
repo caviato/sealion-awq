@@ -179,7 +179,6 @@ Although the evaluations were run with the same n-shot values as Hugging Face's 
 | ARC (arc_challenge)         | 25      |
 | HellaSwag (hellaswag)       | 10      |
 | MMLU (mmlu)                 | 5       |
-| TruthfulQA (truthfulqa_mc2) | 0       |
 
 # Work In Progress (WIP)
 
