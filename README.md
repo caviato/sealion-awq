@@ -87,10 +87,6 @@ for path in paths:
             fails += 1
             continue
 
-        if len(text[entries].split(' ')) < 16:
-            fails += 1
-            continue
-
         dataset.append(text[entries])
 
         entries += 1
